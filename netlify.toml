@@ -3,6 +3,11 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[build.environment]
+  # SUPABASE_URL no es secreto: es la misma URL pública hardcodeada a propósito
+  # en src/App.jsx para el cliente de Supabase (protegido por RLS, no por secreto).
+  SECRETS_SCAN_OMIT_KEYS = "SUPABASE_URL"
+
 # 🔥 PRIMERO API
 [[redirects]]
   from = "/api/*"

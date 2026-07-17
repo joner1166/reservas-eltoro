@@ -54,6 +54,7 @@ exports.handler = async (event) => {
         `Date: ${dateLabel || ""}\n` +
         `Time: ${timeLabel || ""}\n` +
         `Guests: ${guests ?? ""}\n\n` +
+        (manageLink ? `Need to cancel? ${manageLink}\n\n` : ``) +
         `Reply STOP to opt-out.`;
       break;
   }
