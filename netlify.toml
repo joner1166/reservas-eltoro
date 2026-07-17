@@ -1,0 +1,27 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+# 🔥 PRIMERO API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# 🔥 HTML propio por vista (para que "Add to Home Screen" tome el manifest/título correcto)
+[[redirects]]
+  from = "/hostessview"
+  to = "/hostessview.html"
+  status = 200
+
+[[redirects]]
+  from = "/managerview"
+  to = "/managerview.html"
+  status = 200
+
+# 🔥 DESPUÉS SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
