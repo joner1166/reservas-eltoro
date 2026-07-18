@@ -45,11 +45,20 @@
   <h1>SMS Opt-In – Il Toro E La Capra</h1>
   <p><strong>Il Toro E La Capra</strong> | 6435 S Decatur Blvd, Las Vegas, NV 89118 | SMS Reservation Notifications</p>
 
-  <h2>How Customers Opt In</h2>
+  <p>
+    Il Toro E La Capra is a restaurant in Las Vegas, NV. This page documents the SMS program used by our
+    reservation system at
+    <a href="https://bookingeltoro.netlify.app/" target="_blank" rel="noopener">bookingeltoro.netlify.app</a>.
+    Messages are sent only to guests who make a reservation — online, by phone, or as an in-person walk-in —
+    and consist exclusively of transactional notifications directly tied to that reservation (booking
+    confirmation, waitlist confirmation, table-ready alert). No guest receives more than 2 messages, and we
+    do not send marketing messages of any kind.
+  </p>
+
+  <h2>How Customers Opt In (Online Reservations)</h2>
   <p>
     When a customer completes a reservation at
-    <!-- [dominio pendiente — actualizar con la URL real del sitio de reservaciones antes de enviar a registro A2P] -->
-    <a href="https://toroelacapra.com/" target="_blank" rel="noopener">toroelacapra.com</a>,
+    <a href="https://bookingeltoro.netlify.app/" target="_blank" rel="noopener">bookingeltoro.netlify.app</a>,
     they are presented with the following opt-in checkbox before submitting their information.
     The checkbox is <strong>unchecked by default</strong> and is <strong>completely optional</strong> — customers can complete their reservation without checking it.
   </p>
@@ -73,24 +82,28 @@
   <h2>SMS Program Details</h2>
   <ul>
     <li><strong>Sender:</strong> Il Toro E La Capra</li>
-    <li><strong>Message types:</strong> Reservation confirmation, table-ready notification (waitlist)</li>
-    <li><strong>Message frequency:</strong> Up to 2 messages per reservation</li>
+    <li><strong>Message types (3 total, transactional only — no marketing):</strong>
+      <ol>
+        <li><strong>Reservation Confirmation</strong> — sent once, immediately after a table reservation is booked online or by phone</li>
+        <li><strong>Waitlist Confirmation</strong> — sent once, immediately after an in-person walk-in guest is added to the waitlist</li>
+        <li><strong>Table-Ready Notification</strong> — sent once, when a waitlisted/walk-in guest's table becomes available</li>
+      </ol>
+    </li>
+    <li><strong>Message frequency:</strong> Up to 2 messages per guest (a booked reservation only ever triggers message #1; a walk-in only ever triggers messages #2 and #3) — never more, and never unrelated/marketing content</li>
     <li><strong>Opt-out:</strong> Reply <strong>STOP</strong> at any time</li>
     <li><strong>Help:</strong> Reply <strong>HELP</strong> or email <a href="mailto:Iltoroelacapra@toroelacapra.com">Iltoroelacapra@toroelacapra.com</a></li>
     <li><strong>Rates:</strong> Msg &amp; data rates may apply</li>
   </ul>
 
-  <h2>Walk-In / Waitlist Opt-In</h2>
+  <h2>How Customers Opt In (Phone &amp; Walk-In Reservations)</h2>
   <p>
-    For walk-in guests who join the waitlist in person, the hostess verbally informs them that
-    by providing their phone number they will receive up to 2 SMS notifications
-    (waitlist confirmation + table-ready alert), and that they can reply <strong>STOP</strong>
-    to opt out at any time.
-  </p>
-  <p style="font-size:0.85rem;background:#fef9c3;border-left:4px solid #ca8a04;padding:10px 14px;border-radius:4px;color:#713f12;">
-    <strong>Note:</strong> This consent notice is displayed directly in the hostess walk-in form at the reservation site
-    <!-- [dominio pendiente — actualizar con la URL real del sitio de reservaciones antes de enviar a registro A2P] -->
-    above the "Add to Wait List" button, ensuring the hostess is reminded to communicate this to every walk-in guest before submitting.
+    For reservations taken by phone or in person (walk-in / waitlist), no web form is used, so consent is
+    collected <strong>verbally</strong> by the hostess before the guest's phone number is entered into our
+    system: the hostess tells the guest they will receive a text message related to their reservation (a
+    confirmation for phone bookings, or a waitlist confirmation followed by a table-ready alert for
+    walk-ins), that message and data rates may apply, and that they can reply <strong>STOP</strong> at any
+    time to opt out. This same reminder is built into the hostess's booking screen, displayed directly above
+    the submit button, so the hostess repeats it for every phone or walk-in guest before saving their number.
   </p>
 
   <footer>

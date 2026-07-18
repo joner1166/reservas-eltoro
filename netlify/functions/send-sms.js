@@ -1,8 +1,9 @@
 const twilio = require("twilio");
 const { createClient } = require("@supabase/supabase-js");
 
-// Plantillas exactas aprobadas en la campaña A2P 10DLC de Il Toro E La Capra.
-// No modificar el texto sin volver a registrar la plantilla con Twilio.
+// Plantillas exactas registradas en la campaña A2P 10DLC de Il Toro E La Capra
+// (Messaging Service MG10707fdcaa64a7253b623cc058f5c661) — los 3 "Message Samples" sometidos a Twilio.
+// No modificar el texto ni agregar tipos nuevos sin volver a someter la campaña a revisión de Twilio.
 const TEMPLATES = {
   confirm: ({ name, guests, dateLabel, timeLabel }) =>
     `Hi ${name}, your reservation for ${guests} people at Il Toro E La Capra on ${dateLabel} at ${timeLabel} is confirmed. We look forward to serving you! Reply STOP to opt out.`,
