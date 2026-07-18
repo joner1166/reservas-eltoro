@@ -94,7 +94,7 @@ body {
 
 .sr-logo-small {
   width: 100%;
-  max-width: 207px;
+  max-width: 290px;
   height: auto;
   object-fit: contain;
 }
@@ -342,7 +342,7 @@ body {
 
 /* --- ESTILOS VISTA CLIENTE --- */
 .sr-header { padding: 30px 20px; display: flex; justify-content: center; }
-.sr-logo { width: 100%; max-width: clamp(150px, 34vw, 420px); height: auto; display: block; }
+.sr-logo { width: 100%; max-width: clamp(180px, 41vw, 504px); height: auto; display: block; }
 
 .sr-summary { padding: 0; text-align: center; margin-bottom: 36px; }
 .sr-summaryTitle { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: oklch(92% 0.01 90); margin-bottom: 5px; }
@@ -499,7 +499,7 @@ select.sr-input { appearance: none; -webkit-appearance: none; }
 @media (max-width: 900px) {
   .hostess-layout { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
   .sr-hostess-sidebar { width: 100%; min-height: auto; flex-direction: row; align-items: center; padding: 10px; border-right: none; border-bottom: 1px solid oklch(25% 0.015 255); overflow-x: auto; white-space: nowrap; background: oklch(15% 0.015 255); z-index: 10; }
-  .sr-logo-small { height: 30px; margin-right: 15px; }
+  .sr-logo-small { height: 42px; margin-right: 15px; }
   .sr-sidebar-nav { flex-direction: row; display: flex; gap: 8px; width: 100%; }
   .sr-sidebar-nav button { padding: 6px 12px; font-size: 0.85rem; flex-shrink: 0; }
   .sr-hostess-main { padding: 10px; height: 100%; overflow-y: auto; }

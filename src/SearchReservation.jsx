@@ -61,7 +61,7 @@ const styles = {
     justifyContent: "center",
   },
   logo: {
-    width: "clamp(320px, 65vw, 600px)",
+    width: "clamp(384px, 78vw, 720px)",
     height: "auto",
     display: "block",
   },
