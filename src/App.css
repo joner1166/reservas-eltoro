@@ -51,9 +51,9 @@ body {
 
 /* Columna central de Client View (logo + divider + tracker + tarjeta) */
 .sr-client-col { position: relative; z-index: 1; width: 100%; max-width: 640px; display: flex; flex-direction: column; align-items: center; margin: 0 auto; }
-.sr-client-divider { width: 64px; height: 1px; background: oklch(70% 0.11 85 / 0.5); margin: 28px 0 32px; flex-shrink: 0; }
+.sr-client-divider { width: 64px; height: 1px; background: oklch(70% 0.11 85 / 0.5); margin: clamp(10px, 3vw, 28px) 0 clamp(12px, 3.5vw, 32px); flex-shrink: 0; }
 
-.sr-step-tracker { display: flex; align-items: center; gap: 10px; margin-bottom: 36px; width: 100%; max-width: 460px; }
+.sr-step-tracker { display: flex; align-items: center; gap: 10px; margin-bottom: clamp(16px, 4vw, 36px); width: 100%; max-width: 460px; }
 .sr-step-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; background: none; border: none; padding: 0; }
 .sr-step-dot { width: 7px; height: 7px; border-radius: 50%; border: 1px solid oklch(70% 0.11 85 / 0.35); background: transparent; }
 .sr-step-item.done .sr-step-dot { background: oklch(78% 0.13 85); border-color: oklch(78% 0.13 85); }
@@ -342,7 +342,7 @@ body {
 
 /* --- ESTILOS VISTA CLIENTE --- */
 .sr-header { padding: 30px 20px; display: flex; justify-content: center; }
-.sr-logo { width: 100%; max-width: 420px; height: auto; display: block; }
+.sr-logo { width: 100%; max-width: clamp(150px, 34vw, 420px); height: auto; display: block; }
 
 .sr-summary { padding: 0; text-align: center; margin-bottom: 36px; }
 .sr-summaryTitle { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 600; color: oklch(92% 0.01 90); margin-bottom: 5px; }
@@ -514,7 +514,6 @@ select.sr-input { appearance: none; -webkit-appearance: none; }
   .sr-page:not(.hostess-view) { padding: 24px 16px; min-height: 100vh; height: auto; overflow: visible; align-items: center; }
   .sr-page.hostess-view { padding: 0; height: 100vh; overflow: hidden; }
   .sr-page.hostess-view .sr-card { height: 100%; width: 100%; border-radius: 0; box-shadow: none; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 20px; }
-  .sr-logo { max-width: 260px; }
   .sr-client-col { max-width: 100%; }
   .sr-card:not(.hostess-layout) { width: 100%; }
   .sr-form { flex: 1; padding: 28px 24px; }

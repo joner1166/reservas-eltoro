@@ -1994,6 +1994,8 @@ export default function App() {
       source: "walkin",
       cancel_token: cancelToken,
       estimated_wait: estimatedWait,
+      // Consentimiento verbal: la hostess informa al walk-in antes de tomar su teléfono (ver sms-opt-in.html)
+      sms_opt_in: !!walkInForm.phone,
     };
 
     try {
@@ -2095,6 +2097,8 @@ export default function App() {
       status: "reserved",
       source: "reservation",
       cancel_token: cancelToken,
+      // Consentimiento verbal: la hostess informa al cliente antes de tomar su teléfono (ver sms-opt-in.html)
+      sms_opt_in: true,
     };
 
     try {
@@ -2202,6 +2206,8 @@ export default function App() {
           type: "table_ready",
           phone: party.phone,
           firstName: party.firstName,
+          guests: party.guests,
+          cancel_token: party.cancel_token,
         }),
       });
       await markPartyNotified(party.id);

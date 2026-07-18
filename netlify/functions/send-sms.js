@@ -1,4 +1,16 @@
 const twilio = require("twilio");
+const { createClient } = require("@supabase/supabase-js");
+
+// Plantillas exactas aprobadas en la campaña A2P 10DLC de Il Toro E La Capra.
+// No modificar el texto sin volver a registrar la plantilla con Twilio.
+const TEMPLATES = {
+  confirm: ({ name, guests, dateLabel, timeLabel }) =>
+    `Hi ${name}, your reservation for ${guests} people at Il Toro E La Capra on ${dateLabel} at ${timeLabel} is confirmed. We look forward to serving you! Reply STOP to opt out.`,
+  waitlist: ({ name, guests }) =>
+    `Hi ${name}, you have successfully joined the waitlist for ${guests} people at Il Toro E La Capra. We will text you as soon as a table opens up. Reply STOP to opt out.`,
+  table_ready: ({ name, guests }) =>
+    `Hi ${name}, your table for ${guests} people is ready at Il Toro E La Capra! We will hold it for 10 minutes. Please head to the host podium. Reply STOP to opt out.`,
+};
 
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
@@ -12,52 +24,41 @@ exports.handler = async (event) => {
     return { statusCode: 400, body: "Invalid JSON" };
   }
 
-  const { type = "confirm", phone, firstName, dateLabel, timeLabel, guests, cancel_token } = payload;
+  const { type, phone, firstName, dateLabel, timeLabel, guests, cancel_token } = payload;
 
+  if (!TEMPLATES[type]) {
+    return { statusCode: 400, body: JSON.stringify({ error: `Unsupported message type: ${type}` }) };
+  }
   if (!phone) return { statusCode: 400, body: "Phone required" };
+  if (!cancel_token) return { statusCode: 400, body: "cancel_token required to verify SMS consent" };
+
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { statusCode: 500, body: "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY" };
+  }
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  // Gate estricto: solo se manda SMS si la reservación existe y tiene sms_opt_in === true.
+  const { data: reservation, error: lookupError } = await supabase
+    .from("reservations")
+    .select("sms_opt_in")
+    .eq("cancel_token", cancel_token)
+    .maybeSingle();
+
+  if (lookupError) {
+    console.error("Consent lookup error:", lookupError);
+    return { statusCode: 500, body: JSON.stringify({ error: lookupError.message }) };
+  }
+  if (!reservation) {
+    return { statusCode: 200, body: JSON.stringify({ success: false, skipped: true, reason: "reservation_not_found" }) };
+  }
+  if (reservation.sms_opt_in !== true) {
+    return { statusCode: 200, body: JSON.stringify({ success: false, skipped: true, reason: "no_consent" }) };
+  }
 
   const name = (firstName || "").trim() || "there";
-
-  // ✅ Link robusto a function real (recomendado)
-  const manageLink = cancel_token
-    ? `${process.env.URL}/.netlify/functions/cancel?token=${encodeURIComponent(cancel_token)}`
-    : null;
+  const messageBody = TEMPLATES[type]({ name, guests: guests ?? "", dateLabel: dateLabel || "", timeLabel: timeLabel || "" });
 
   const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-  let messageBody = "";
-
-  switch (type) {
-    case "waitlist":
-      messageBody =
-        `Il Toro E La Capra\n\n` +
-        `Hi ${name}, you're on our waitlist.\n\n` +
-        `Party of ${guests ?? ""}.\n\n` +
-        `We'll text you when your table is ready. Thanks for your patience!\n\n` +
-        `Msg & data rates may apply. Reply STOP to opt-out.`;
-      break;
-
-    case "table_ready":
-      messageBody =
-        `Il Toro E La Capra\n\n` +
-        `Your table is ready, ${name}!\n\n` +
-        `Please check in with the hostess within 10 minutes to hold your table.\n\n` +
-        `See you soon! Reply STOP to opt-out.`;
-      break;
-
-    case "confirm":
-    default:
-      messageBody =
-        `Il Toro E La Capra\n\n` +
-        `Reservation Confirmed!\n\n` +
-        `Hi ${name}, we look forward to hosting you.\n\n` +
-        `Date: ${dateLabel || ""}\n` +
-        `Time: ${timeLabel || ""}\n` +
-        `Guests: ${guests ?? ""}\n\n` +
-        (manageLink ? `Need to cancel? ${manageLink}\n\n` : ``) +
-        `Reply STOP to opt-out.`;
-      break;
-  }
 
   try {
     await client.messages.create({
