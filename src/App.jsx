@@ -1198,8 +1198,8 @@ const ClientSearchView = React.memo(function ClientSearchView({
           )}
           <div className="sr-foot">
             If your party is over 25 people please{' '}
-            <a href="tel:7027356828">
-              call us at (702) 735-6828
+            <a href="tel:7023316090">
+              call us at (702) 331-6090
             </a>
             {' '}so we can properly accommodate you.
           </div>
