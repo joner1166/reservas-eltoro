@@ -437,6 +437,8 @@ const HostessView = React.memo(function HostessView({
   const [assigningServers, setAssigningServers] = useState(new Set());
   const [pendingAssignTables, setPendingAssignTables] = useState(new Set());
   const [showAssignServerList, setShowAssignServerList] = useState(false);
+  const [serverMenuOpen, setServerMenuOpen] = useState(false);
+  const [serverMenuMode, setServerMenuMode] = useState(null);
   const [tableEvents, setTableEvents] = useState([]);
   useEffect(() => {
     fetchTableEvents(dateISO).then(({ data }) => setTableEvents(data || [])).catch(() => setTableEvents([]));
@@ -978,6 +980,67 @@ const HostessView = React.memo(function HostessView({
             )}
             {activeTab === 'servers' && (
               <div className="sr-walkin-form">
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px', position: 'relative' }}>
+                  <button
+                    onClick={() => { setServerMenuOpen(o => !o); setServerMenuMode(null); }}
+                    style={{ background: 'transparent', border: `1px solid ${LM_COLORS.navyBorder}`, borderRadius: '8px', width: '34px', height: '34px', fontSize: '1.1rem', color: LM_COLORS.textDark, cursor: 'pointer' }}
+                  >⚙</button>
+                  {serverMenuOpen && (
+                    <div style={{ position: 'absolute', top: '110%', right: 0, background: LM_COLORS.navyLight, border: `1px solid ${LM_COLORS.navyBorder}`, borderRadius: '10px', padding: '8px', zIndex: 100, minWidth: '200px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                      {serverMenuMode === null && (
+                        <>
+                          <button onClick={() => setServerMenuMode('add')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', color: 'oklch(90% 0.01 90)', border: 'none', borderRadius: '6px', padding: '8px 10px', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>+ Add Server</button>
+                          <button onClick={() => setServerMenuMode('edit')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', color: 'oklch(90% 0.01 90)', border: 'none', borderRadius: '6px', padding: '8px 10px', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>✎ Edit Server</button>
+                          <button onClick={() => setServerMenuMode('delete')} style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', color: LM_COLORS.danger, border: 'none', borderRadius: '6px', padding: '8px 10px', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>✕ Delete Server</button>
+                        </>
+                      )}
+                      {serverMenuMode === 'add' && (
+                        <>
+                          <button onClick={() => setServerMenuMode(null)} style={{ background: 'transparent', border: 'none', color: LM_COLORS.textFaint, fontSize: '0.72rem', cursor: 'pointer', padding: '4px 6px 10px', fontFamily: "'Jost',sans-serif" }}>← Back</button>
+                          <input
+                            autoFocus
+                            className="sr-input"
+                            placeholder="New server name"
+                            value={newServerName}
+                            onChange={e => setNewServerName(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter' && newServerName.trim()) { onAddServer(newServerName); setNewServerName(''); setServerMenuOpen(false); } }}
+                            style={{ marginBottom: '8px' }}
+                          />
+                          <button
+                            className="sr-btn sr-btnPrimary"
+                            style={{ width: '100%' }}
+                            disabled={!newServerName.trim()}
+                            onClick={() => { onAddServer(newServerName); setNewServerName(''); setServerMenuOpen(false); }}
+                          >
+                            Add
+                          </button>
+                        </>
+                      )}
+                      {(serverMenuMode === 'edit' || serverMenuMode === 'delete') && (
+                        <>
+                          <button onClick={() => setServerMenuMode(null)} style={{ background: 'transparent', border: 'none', color: LM_COLORS.textFaint, fontSize: '0.72rem', cursor: 'pointer', padding: '4px 6px 10px', fontFamily: "'Jost',sans-serif" }}>← Back</button>
+                          {servers.length === 0 && <div style={{ color: LM_COLORS.textFaint, fontSize: '0.75rem', padding: '4px 10px' }}>No servers yet.</div>}
+                          {servers.map(s => (
+                            <button
+                              key={s.id}
+                              onClick={() => {
+                                if (serverMenuMode === 'edit') {
+                                  setEditingServer({ id: s.id, name: s.name });
+                                } else if (window.confirm(`Remove ${s.name} from servers?`)) {
+                                  onDeleteServer(s.id);
+                                }
+                                setServerMenuOpen(false);
+                              }}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', color: serverMenuMode === 'delete' ? LM_COLORS.danger : 'oklch(90% 0.01 90)', border: 'none', borderRadius: '6px', padding: '8px 10px', fontWeight: '600', fontSize: '0.8rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}
+                            >
+                              {s.name}
+                            </button>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   {servers.length === 0 && <p style={{color: LM_COLORS.textFaint, fontSize: '0.72rem'}}>No servers yet.</p>}
                   {servers.map(s => {
@@ -989,43 +1052,13 @@ const HostessView = React.memo(function HostessView({
                           <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: LM_COLORS.navyBorder, border: `1px solid ${LM_COLORS.goldText}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: LM_COLORS.goldText, fontFamily: "'Jost',sans-serif", flexShrink: 0 }}>{getInitials(s.name)}</div>
                           <div style={{ fontWeight: '500', fontSize: '0.88rem', color: 'oklch(90% 0.01 90)', fontFamily: "'Jost',sans-serif", textTransform: 'uppercase', letterSpacing: '1px' }}>{cleanName}</div>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-                          <div style={{ textAlign: 'right' }}>
-                            <div style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: "'Playfair Display',serif", color: myCount > 0 ? LM_COLORS.goldDim : 'oklch(45% 0.01 90)' }}>{myCount}</div>
-                            <div style={{ fontSize: '0.62rem', color: 'oklch(55% 0.01 90)', fontWeight: '600', fontFamily: "'Jost',sans-serif" }}>tables today</div>
-                          </div>
-                          <div style={{ display: 'flex', gap: '2px' }}>
-                            <button
-                              style={{background: 'none', border: 'none', cursor: 'pointer', color: LM_COLORS.goldText, fontSize: '1rem', padding: '4px 8px'}}
-                              onClick={() => setEditingServer({ id: s.id, name: s.name })}
-                            >✎</button>
-                            <button
-                              style={{background: 'none', border: 'none', cursor: 'pointer', color: LM_COLORS.danger, fontSize: '1.1rem', fontWeight: '700', padding: '4px 8px'}}
-                              onClick={() => { if (window.confirm(`Remove ${cleanName} from servers?`)) onDeleteServer(s.id); }}
-                            >✕</button>
-                          </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: "'Playfair Display',serif", color: myCount > 0 ? LM_COLORS.goldDim : 'oklch(45% 0.01 90)' }}>{myCount}</div>
+                          <div style={{ fontSize: '0.62rem', color: 'oklch(55% 0.01 90)', fontWeight: '600', fontFamily: "'Jost',sans-serif" }}>tables today</div>
                         </div>
                       </div>
                     );
                   })}
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                  <input
-                    className="sr-input"
-                    placeholder="New server name"
-                    value={newServerName}
-                    onChange={e => setNewServerName(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter' && newServerName.trim()) { onAddServer(newServerName); setNewServerName(''); } }}
-                  />
-                  <button
-                    className="sr-btn sr-btnPrimary"
-                    style={{flex: '0 0 auto', padding: '0 24px'}}
-                    disabled={!newServerName.trim()}
-                    onClick={() => { onAddServer(newServerName); setNewServerName(''); }}
-                  >
-                    Add Server
-                  </button>
                 </div>
               </div>
             )}
