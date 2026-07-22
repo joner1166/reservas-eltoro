@@ -12,8 +12,6 @@ import logo from "/logo.png"; // Logo principal para la interfaz
  *******************************************************/
 const MAX_GUESTS = 12;
 const MAX_CLIENT_GUESTS = 25;
-// Placeholder — reemplazar con el roster real de Il Toro E La Capra
-const SERVERS = ['ANTONIO', 'BEATRIZ', 'CARLOS', 'DANIELA', 'ENRIQUE'];
 function getInitials(name) {
   const clean = String(name || '').replace(/[^\p{L}\p{N}\s]/gu, '').trim();
   const parts = clean.split(/\s+/).filter(Boolean);
@@ -296,6 +294,22 @@ async function fetchTableEvents(dateISO) {
   return supabase.from("table_events").select("*").eq("date_iso", dateISO);
 }
 
+async function fetchServers() {
+  return supabase.from("servers").select("id, name").order("name");
+}
+
+async function insertServer(name) {
+  return supabase.from("servers").insert({ name });
+}
+
+async function updateServerName(id, name) {
+  return supabase.from("servers").update({ name }).eq("id", id);
+}
+
+async function deleteServer(id) {
+  return supabase.from("servers").delete().eq("id", id);
+}
+
 /*******************************************************
  * BLOQUE 4 — REALTIME (HOOK INTERNO)
  *******************************************************/
@@ -376,7 +390,11 @@ const HostessView = React.memo(function HostessView({
   // Datos
   walkInForm, setWalkInForm, phoneResForm, setPhoneResForm,
   waitList, history, seatedList, canceledList, blackoutDates, tableStatuses, tableServerNames,
-  walkinLoading, phoneResLoading, newReservationTick
+  walkinLoading, phoneResLoading, newReservationTick,
+
+  // Servers
+  servers, editingServer, setEditingServer, newServerName, setNewServerName,
+  onAddServer, onUpdateServer, onDeleteServer,
 }) {
   const blackoutInputRef = useRef(null);
   const bookingDateRef = useRef(null);
@@ -787,10 +805,10 @@ const HostessView = React.memo(function HostessView({
                         </button>
                         {showAssignServerList && (
                           <div style={{ position: 'absolute', top: '110%', right: 0, background: LM_COLORS.navyLight, border: `1px solid ${LM_COLORS.navyBorder}`, borderRadius: '10px', padding: '8px', zIndex: 100, minWidth: '160px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                            {SERVERS.map(name => (
-                              <button key={name} onClick={() => setAssigningServers(prev => { const s = new Set(prev); s.has(name) ? s.delete(name) : s.add(name); return s; })}
-                                style={{ display: 'block', width: '100%', textAlign: 'left', background: assigningServers.has(name) ? LM_COLORS.info : 'transparent', color: 'oklch(90% 0.01 90)', border: 'none', borderRadius: '6px', padding: '6px 10px', fontWeight: '600', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
-                                {name}
+                            {servers.map(s => (
+                              <button key={s.id} onClick={() => setAssigningServers(prev => { const set = new Set(prev); set.has(s.name) ? set.delete(s.name) : set.add(s.name); return set; })}
+                                style={{ display: 'block', width: '100%', textAlign: 'left', background: assigningServers.has(s.name) ? LM_COLORS.info : 'transparent', color: 'oklch(90% 0.01 90)', border: 'none', borderRadius: '6px', padding: '6px 10px', fontWeight: '600', fontSize: '0.78rem', cursor: 'pointer', fontFamily: "'Jost',sans-serif" }}>
+                                {s.name}
                               </button>
                             ))}
                             <div style={{ borderTop: `1px solid ${LM_COLORS.navyBorder}`, marginTop: '6px', paddingTop: '6px' }}>
@@ -961,22 +979,53 @@ const HostessView = React.memo(function HostessView({
             {activeTab === 'servers' && (
               <div className="sr-walkin-form">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {SERVERS.map(name => {
-                    const myCount = tableEvents.filter(e => e.server_name === name).length;
-                    const cleanName = name.replace(/[^\p{L}\p{N}\s]/gu, '').trim();
+                  {servers.length === 0 && <p style={{color: LM_COLORS.textFaint, fontSize: '0.72rem'}}>No servers yet.</p>}
+                  {servers.map(s => {
+                    const myCount = tableEvents.filter(e => e.server_name === s.name).length;
+                    const cleanName = s.name.replace(/[^\p{L}\p{N}\s]/gu, '').trim();
                     return (
-                      <div key={name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: LM_COLORS.navyLight, border: `1px solid ${LM_COLORS.navyBorder}`, borderRadius: '0', padding: '12px 16px' }}>
+                      <div key={s.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: LM_COLORS.navyLight, border: `1px solid ${LM_COLORS.navyBorder}`, borderRadius: '0', padding: '12px 16px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: LM_COLORS.navyBorder, border: `1px solid ${LM_COLORS.goldText}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: LM_COLORS.goldText, fontFamily: "'Jost',sans-serif", flexShrink: 0 }}>{getInitials(name)}</div>
+                          <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: LM_COLORS.navyBorder, border: `1px solid ${LM_COLORS.goldText}66`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: '600', color: LM_COLORS.goldText, fontFamily: "'Jost',sans-serif", flexShrink: 0 }}>{getInitials(s.name)}</div>
                           <div style={{ fontWeight: '500', fontSize: '0.88rem', color: 'oklch(90% 0.01 90)', fontFamily: "'Jost',sans-serif", textTransform: 'uppercase', letterSpacing: '1px' }}>{cleanName}</div>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <div style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: "'Playfair Display',serif", color: myCount > 0 ? LM_COLORS.goldDim : 'oklch(45% 0.01 90)' }}>{myCount}</div>
-                          <div style={{ fontSize: '0.62rem', color: 'oklch(55% 0.01 90)', fontWeight: '600', fontFamily: "'Jost',sans-serif" }}>tables today</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '1.4rem', fontWeight: '700', fontFamily: "'Playfair Display',serif", color: myCount > 0 ? LM_COLORS.goldDim : 'oklch(45% 0.01 90)' }}>{myCount}</div>
+                            <div style={{ fontSize: '0.62rem', color: 'oklch(55% 0.01 90)', fontWeight: '600', fontFamily: "'Jost',sans-serif" }}>tables today</div>
+                          </div>
+                          <div style={{ display: 'flex', gap: '2px' }}>
+                            <button
+                              style={{background: 'none', border: 'none', cursor: 'pointer', color: LM_COLORS.goldText, fontSize: '1rem', padding: '4px 8px'}}
+                              onClick={() => setEditingServer({ id: s.id, name: s.name })}
+                            >✎</button>
+                            <button
+                              style={{background: 'none', border: 'none', cursor: 'pointer', color: LM_COLORS.danger, fontSize: '1.1rem', fontWeight: '700', padding: '4px 8px'}}
+                              onClick={() => { if (window.confirm(`Remove ${cleanName} from servers?`)) onDeleteServer(s.id); }}
+                            >✕</button>
+                          </div>
                         </div>
                       </div>
                     );
                   })}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+                  <input
+                    className="sr-input"
+                    placeholder="New server name"
+                    value={newServerName}
+                    onChange={e => setNewServerName(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter' && newServerName.trim()) { onAddServer(newServerName); setNewServerName(''); } }}
+                  />
+                  <button
+                    className="sr-btn sr-btnPrimary"
+                    style={{flex: '0 0 auto', padding: '0 24px'}}
+                    disabled={!newServerName.trim()}
+                    onClick={() => { onAddServer(newServerName); setNewServerName(''); }}
+                  >
+                    Add Server
+                  </button>
                 </div>
               </div>
             )}
@@ -1026,6 +1075,26 @@ const HostessView = React.memo(function HostessView({
             <div className="sr-actions" style={{marginTop: '20px'}}>
               <button className="sr-btn" onClick={() => setEditingRes(null)}>Cancel</button>
               <button className="sr-btn sr-btnPrimary" onClick={async () => { await onSaveEdit(editingRes.id, { firstName: editingRes.firstName, lastName: editingRes.lastName, phone: editingRes.phone, email: editingRes.email, guests: editingRes.guests, dateISO: editingRes.dateISO, timeHHMM: editingRes.timeHHMM, celebration: editingRes.celebration, dietary: editingRes.dietary, notes: editingRes.notes }); setEditingRes(null); }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {editingServer && (
+        <div className="sr-modal-overlay" onClick={() => setEditingServer(null)}>
+          <div className="sr-modal" onClick={e => e.stopPropagation()}>
+            <h3 style={{margin: '0 0 20px', fontSize: '1.4rem'}}>Edit Server</h3>
+            <div className="sr-formGrid">
+              <div className="sr-field sr-span2">
+                <label className="sr-fieldLabel">Name</label>
+                <input className="sr-input" value={editingServer.name} onChange={e => setEditingServer({...editingServer, name: e.target.value})} />
+              </div>
+            </div>
+            <div className="sr-actions" style={{marginTop: '20px'}}>
+              <button className="sr-btn" onClick={() => setEditingServer(null)}>Cancel</button>
+              <button className="sr-btn sr-btnPrimary" disabled={!editingServer.name.trim()} onClick={async () => {
+                await onUpdateServer(editingServer.id, editingServer.name);
+                setEditingServer(null);
+              }}>Save</button>
             </div>
           </div>
         </div>
@@ -1778,6 +1847,9 @@ export default function App() {
   const [estimatedWait, setEstimatedWait] = useState(15);
   const [timeHHMM, setTimeHHMM] = useState("19:00");
   const [blackoutDates, setBlackoutDates] = useState([]);
+  const [servers, setServers] = useState([]);
+  const [editingServer, setEditingServer] = useState(null);
+  const [newServerName, setNewServerName] = useState('');
   const [activeFloor, setActiveFloor] = useState("BAR");
   const [rows, setRows] = useState([]);
   const [tableStatuses, setTableStatuses] = useState({});
@@ -1907,6 +1979,18 @@ export default function App() {
     return () => supabase.removeChannel(channel);
   }, []);
 
+  // Cargar y sincronizar servers en tiempo real
+  useEffect(() => {
+    const load = () =>
+      fetchServers().then(({ data }) => { if (data) setServers(data); });
+    load();
+    const channel = supabase
+      .channel('servers_rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'servers' }, load)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
   const isDateBlocked = (d) => !isRestaurantOpen(d);
 
   const stepDate = (dir) => {
@@ -1946,6 +2030,25 @@ export default function App() {
     } else {
       await supabase.from('blackout_dates').insert({ date_iso: dateToToggle, notes: notes || null, type });
     }
+  };
+
+  const handleAddServer = async (name) => {
+    const clean = (name || '').trim();
+    if (!clean) return;
+    const { error } = await insertServer(clean.toUpperCase());
+    if (error) alert('Error adding server: ' + error.message);
+  };
+
+  const handleUpdateServer = async (id, name) => {
+    const clean = (name || '').trim();
+    if (!clean) return;
+    const { error } = await updateServerName(id, clean.toUpperCase());
+    if (error) alert('Error renaming server: ' + error.message);
+  };
+
+  const handleDeleteServer = async (id) => {
+    const { error } = await deleteServer(id);
+    if (error) alert('Error removing server: ' + error.message);
   };
 
   const handleTableSelection = async (table) => {
@@ -2361,6 +2464,14 @@ export default function App() {
         blackoutDates={blackoutDates}
         tableStatuses={tableStatuses}
         tableServerNames={tableServerNames}
+        servers={servers}
+        editingServer={editingServer}
+        setEditingServer={setEditingServer}
+        newServerName={newServerName}
+        setNewServerName={setNewServerName}
+        onAddServer={handleAddServer}
+        onUpdateServer={handleUpdateServer}
+        onDeleteServer={handleDeleteServer}
       />
     );
   }

@@ -222,3 +222,34 @@ end $$;
 
 create index if not exists te_table_date_idx on public.table_events (table_id, date_iso);
 create index if not exists te_date_idx       on public.table_events (date_iso);
+
+/* =========================================================
+   12) Tabla servers
+   ========================================================= */
+create table if not exists public.servers (
+  id         bigserial primary key,
+  name       text not null,
+  created_at timestamptz not null default now()
+);
+alter table public.servers enable row level security;
+drop policy if exists "servers_select" on public.servers;
+drop policy if exists "servers_insert" on public.servers;
+drop policy if exists "servers_update" on public.servers;
+drop policy if exists "servers_delete" on public.servers;
+create policy "servers_select" on public.servers for select using (true);
+create policy "servers_insert" on public.servers for insert with check (true);
+create policy "servers_update" on public.servers for update using (true) with check (true);
+create policy "servers_delete" on public.servers for delete using (true);
+alter table public.servers replica identity full;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'servers'
+  ) then execute 'alter publication supabase_realtime add table public.servers'; end if;
+end $$;
+
+-- Sembrar con el roster placeholder actual, solo si la tabla está vacía
+insert into public.servers (name)
+select * from (values ('ANTONIO'),('BEATRIZ'),('CARLOS'),('DANIELA'),('ENRIQUE')) as seed(name)
+where not exists (select 1 from public.servers);
